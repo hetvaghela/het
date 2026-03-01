@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Het Vaghela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1f1f2e;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* Gradient orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; top: -200px; left: -150px; background: rgba(108,99,255,0.12); }
+    .orb-2 { width: 400px; height: 400px; bottom: -150px; right: -100px; background: rgba(255,101,132,0.08); }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.5rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10,10,15,0.6);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 8rem 3rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 750px; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(108,99,255,0.1);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.2s;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-family: var(--font-head);
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+
+    .hero h1 .name { display: block; }
+    .hero h1 .role {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(108,99,255,0.5);
+      font-style: italic;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.6s;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.8s;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #7b73ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(108,99,255,0.3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* SCROLL INDICATOR */
+    .scroll-line {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      animation: fadeIn 1s ease forwards 1.5s;
+    }
+    .scroll-line span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+    }
+    .scroll-line::after {
+      content: '';
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--muted), transparent);
+      animation: scrollDown 1.5s ease infinite;
+    }
+    @keyframes scrollDown {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      51% { transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* SECTION COMMONS */
+    section {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem 3rem;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 3rem;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 3rem;
+    }
+
+    /* ABOUT */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: rgba(108,99,255,0.4); }
+
+    .stat-number {
+      font-family: var(--font-head);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.04em;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+
+    /* SKILLS */
+    #skills { background: transparent; }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .skill-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      text-align: center;
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .skill-pill:hover {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.08);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* EXPERIENCE */
+    .timeline { position: relative; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      padding-left: 2.5rem;
+      padding-bottom: 3rem;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: 6px;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--bg);
+    }
+
+    .timeline-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-title {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-company {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .timeline-desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 600px;
+    }
+
+    /* PROJECTS */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(108,99,255,0.06), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .project-card:hover {
+      border-color: rgba(108,99,255,0.35);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .project-card:hover::before { opacity: 1; }
+
+    .project-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .project-title {
+      font-family: var(--font-head);
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .project-desc {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.65rem;
+      background: rgba(108,99,255,0.1);
+      border: 1px solid rgba(108,99,255,0.2);
+      color: var(--accent);
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+    }
+
+    /* CONTACT */
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .contact-text p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .social-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      transition: all 0.2s;
+    }
+    .social-link:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.08);
+    }
+
+    .social-icon {
+      width: 36px; height: 36px;
+      background: rgba(108,99,255,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .email-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      text-align: center;
+    }
+
+    .email-card p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .email-card .email-addr {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 1.25rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { padding: 7rem 1.5rem 4rem; }
+      section { padding: 4rem 1.5rem; }
+      hr.divider { margin: 0 1.5rem; }
+      .about-grid, .contact-wrapper { grid-template-columns: 1fr; gap: 2rem; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav>
+    <a href="#" class="nav-logo">Het<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div style="position:relative">
+    <div class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">Open to new roles</div>
+        <h1>
+          <span class="name">Het Vaghela</span>
+          <span class="role">Engineer.</span>
+        </h1>
+        <p class="hero-desc">
+          Senior Software Developer at RBC. Specializing in Agentic AI, Data, and Cloud — building systems that scale at Canada's largest institutions.
+        </p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn btn-primary">View My Work →</a>
+          <a href="#contact" class="btn btn-outline">Get In Touch</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-line"><span>Scroll</span></div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-label">About Me</div>
+    <div class="about-grid">
+      <div class="about-text">
+        <h2 class="section-title">A bit about<br/>who I am</h2>
+        <p>Hi, I'm Het — a Senior Software Developer at RBC with a background spanning Agentic AI, Data pipelines, and Cloud infrastructure. I've worked across Canada's most prominent financial institutions including OTPP and CIBC.</p>
+        <p>Beyond engineering, I teach DevOps as a Professor at NobleProg, having led courses in Kubernetes, Docker, Ansible, Jenkins, and Nagios. I hold a CAPM® certification from PMI and a postgraduate degree in Computer Science from Seneca Polytechnic.</p>
+        <p style="margin-top:1.5rem">
+          <a href="https://linkedin.com/in/het-vaghela/" target="_blank" class="btn btn-outline" style="display:inline-flex">
+            LinkedIn Profile ↗
+          </a>
+        </p>
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number">5+</div>
+          <div class="stat-label">Years Experience</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">3</div>
+          <div class="stat-label">Major Banks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">CAPM®</div>
+          <div class="stat-label">PMI Certified</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">500+</div>
+          <div class="stat-label">Connections</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="section-label">Tech Stack</div>
+    <h2 class="section-title">Skills &<br/>Technologies</h2>
+    <div class="skills-grid">
+      <div class="skill-pill">Java</div>
+      <div class="skill-pill">Spring Boot</div>
+      <div class="skill-pill">Python</div>
+      <div class="skill-pill">Kubernetes</div>
+      <div class="skill-pill">Docker</div>
+      <div class="skill-pill">Ansible</div>
+      <div class="skill-pill">Jenkins</div>
+      <div class="skill-pill">Azure</div>
+      <div class="skill-pill">AWS</div>
+      <div class="skill-pill">GCP</div>
+      <div class="skill-pill">Terraform</div>
+      <div class="skill-pill">HashiCorp Vault</div>
+      <div class="skill-pill">SQL</div>
+      <div class="skill-pill">Spring Security</div>
+      <div class="skill-pill">Microservices</div>
+      <div class="skill-pill">Agentic AI</div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="section-label">Career</div>
+    <h2 class="section-title">Experience</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-meta">Jan 2026 — Present</div>
+        <div class="timeline-title">Senior Software Developer</div>
+        <div class="timeline-company">RBC · Toronto, ON</div>
+        <p class="timeline-desc">Leading development on Helios' internal pipeline using Spring Boot and Java. Engineering robust backend solutions integrating with internal systems for smooth data flow and processing.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">May 2025 — Jan 2026</div>
+        <div class="timeline-title">Software Developer, Data & AI</div>
+        <div class="timeline-company">RBC · Toronto, ON · Hybrid</div>
+        <p class="timeline-desc">Focused on Data and AI initiatives, building intelligent pipelines and leveraging LLMs and agentic AI to drive innovation within Canada's largest bank.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">May 2024 — May 2025</div>
+        <div class="timeline-title">Software Developer</div>
+        <div class="timeline-company">RBC · Toronto, ON · Hybrid</div>
+        <p class="timeline-desc">Optimized the Helios pipeline, improving performance and reliability. Built backend integrations using Spring Boot and Java with Spring Data JPA.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">Jan 2024 — May 2024</div>
+        <div class="timeline-title">Java Developer</div>
+        <div class="timeline-company">Ontario Teachers' Pension Plan · Toronto, ON</div>
+        <p class="timeline-desc">Designed scalable Java microservices to integrate the Canada Pension Plan entity. Built Spring Boot payment workflows with Spring Security token-based authentication. Deployed on Azure via Jenkins CI/CD pipelines.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">Jan 2023 — Aug 2023</div>
+        <div class="timeline-title">Automation Engineer</div>
+        <div class="timeline-company">CIBC · Toronto, ON · Hybrid</div>
+        <p class="timeline-desc">Developed Ansible Tower solutions with Python & YAML to accelerate Oracle DB querying. Led on-premises DB migration to Azure cloud using Java and Rubrik. Implemented HashiCorp Vault for secrets management across Azure, .NET, and Azure Functions.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">Dec 2023 — Present</div>
+        <div class="timeline-title">DevOps Professor</div>
+        <div class="timeline-company">NobleProg · Remote</div>
+        <p class="timeline-desc">Delivering comprehensive DevOps education in Kubernetes, Docker, Ansible, Jenkins, and Nagios. Led a DevOps Crash Course for Professors at Vanier College, blending theory with hands-on labs.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-meta">Oct 2020 — Jun 2022</div>
+        <div class="timeline-title">Software / DevOps Engineer</div>
+        <div class="timeline-company">Crest Data Systems · Ahmedabad, India</div>
+        <p class="timeline-desc">Deployed and maintained Splunk Cloud systems on AWS and GCP. Managed infrastructure with Terraform, Puppet, Jenkins, and Nagios. Mentored new team members and drove cross-team delivery.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="section-label">Work</div>
+    <h2 class="section-title">Selected<br/>Projects</h2>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-icon">🏦</div>
+        <div class="project-title">Helios Pipeline @ RBC</div>
+        <p class="project-desc">Engineered and optimized RBC's internal Helios data pipeline, significantly improving performance and reliability for Canada's largest bank.</p>
+        <div class="project-tags">
+          <span class="tag">Java</span>
+          <span class="tag">Spring Boot</span>
+          <span class="tag">Spring Data JPA</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">🧠</div>
+        <div class="project-title">CPP Integration @ OTPP</div>
+        <p class="project-desc">Designed scalable Java microservices to integrate the Canada Pension Plan entity into Ontario Teachers' systems with secure payment workflows and Azure deployment.</p>
+        <div class="project-tags">
+          <span class="tag">Java</span>
+          <span class="tag">Spring Security</span>
+          <span class="tag">Azure</span>
+          <span class="tag">Jenkins</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">☁️</div>
+        <div class="project-title">DB Cloud Migration @ CIBC</div>
+        <p class="project-desc">Led architecture and implementation of CIBC's on-premises Oracle DB migration to Azure cloud using Java, Ansible Tower, and HashiCorp Vault for secrets management.</p>
+        <div class="project-tags">
+          <span class="tag">Ansible</span>
+          <span class="tag">Azure</span>
+          <span class="tag">HashiCorp Vault</span>
+          <span class="tag">Docker</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">🎓</div>
+        <div class="project-title">DevOps Education Program</div>
+        <p class="project-desc">Designed and delivered DevOps curricula for NobleProg covering Kubernetes, Docker, Ansible, Jenkins, and Nagios — including a crash course for Vanier College professors.</p>
+        <div class="project-tags">
+          <span class="tag">Kubernetes</span>
+          <span class="tag">Docker</span>
+          <span class="tag">Ansible</span>
+          <span class="tag">Jenkins</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-icon">📊</div>
+        <div class="project-title">Splunk Cloud Ops @ Crest</div>
+        <p class="project-desc">Deployed and maintained Splunk Cloud infrastructure on AWS and GCP, managing CI/CD, backup/restore pipelines, and operational monitoring with Terraform and Puppet.</p>
+        <div class="project-tags">
+          <span class="tag">AWS</span>
+          <span class="tag">GCP</span>
+          <span class="tag">Terraform</span>
+          <span class="tag">Python</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-label">Get In Touch</div>
+    <div class="contact-wrapper">
+      <div class="contact-text">
+        <h2 class="section-title">Let's work<br/>together</h2>
+        <p>Whether you have a project in mind, a role to discuss, or just want to say hello — my inbox is always open.</p>
+        <div class="social-links">
+          <a href="https://linkedin.com/in/het-vaghela/" target="_blank" class="social-link">
+            <div class="social-icon">in</div>
+            <span>linkedin.com/in/het-vaghela</span>
+          </a>
+          <a href="https://github.com/hetvaghela" target="_blank" class="social-link">
+            <div class="social-icon">gh</div>
+            <span>github.com/hetvaghela</span>
+          </a>
+          <a href="https://twitter.com/hetvaghela18" target="_blank" class="social-link">
+            <div class="social-icon">𝕏</div>
+            <span>@hetvaghela18</span>
+          </a>
+        </div>
+      </div>
+      <div class="email-card">
+        <p>Or just shoot me an email directly:</p>
+        <!-- UPDATE: Replace with your actual email -->
+        <span class="email-addr">hetvaghela11@gmail.com</span>
+        <a href="mailto:hetvaghela11@gmail.com" class="btn btn-primary" style="width:100%;justify-content:center">
+          Send Email →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Het Vaghela. All rights reserved.</span>
+    <span>Built with ❤️ and clean code.</span>
+  </footer>
+
+</body>
+</html>
